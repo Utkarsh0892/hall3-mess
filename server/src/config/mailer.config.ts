@@ -94,8 +94,15 @@ export class Mailer {
                                 `<div style="font: 10px/1.4 Arial,Helvetica,sans-serif;">` +
                                     `<p>In case of any difficulty or concern, please feel free to contact any one of us.</p>` +  
                                     `<p>` +
-                                        `Ashish Kumar Singh<br>` +
+                                        `Saurabh Vikram<br>` +
                                         `Web-Incharge (Present)<br>` +
+                                        `Hall 3 IIT Kanpur<br>` +
+                                        `<a href="mailto:vsaurabh@iitk.ac.in">vsaurabh@iitk.ac.in</a> | 7007321908` +
+                                    `</p>` +
+
+                                    `<p>` +
+                                        `Ashish Kumar Singh<br>` +
+                                        `Web-Incharge (2018-2019)<br>` +
                                         `Hall 3 IIT Kanpur<br>` +
                                         `<a href="mailto:ashsgh@iitk.ac.in">ashsgh@iitk.ac.in</a> | 8778124118` +
                                     `</p>` +
