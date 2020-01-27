@@ -101,6 +101,13 @@ export class Mailer {
                                     `</p>` +
 
                                     `<p>` +
+                                        `Deependra Chansoliya<br>` +
+                                        `Web-Incharge (Present)<br>` +
+                                        `Hall 3 IIT Kanpur<br>` +
+                                        `<a href="mailto:cdeep@iitk.ac.in">cdeep@iitk.ac.in</a> | 6265119860` +
+                                    `</p>` +
+
+                                    `<p>` +
                                         `Ashish Kumar Singh<br>` +
                                         `Web-Incharge (2018-2019)<br>` +
                                         `Hall 3 IIT Kanpur<br>` +
