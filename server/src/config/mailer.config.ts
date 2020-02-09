@@ -75,32 +75,33 @@ export class Mailer {
         return this.sendMail(mailOptions);
     }
 
-    public sendWarningMail(user: UserModel): Promise<any> {
+    public sendInactivityWarningMail(user: UserModel, lastUse : Number, daysLeft : Number): Promise<any> {
         const mailOptions: nodemailer.SendMailOptions = {
             to: user.email,
             from: SENDER,
             bcc: BCC,
-            subject: 'Account Deletion Warning',
+            subject: 'Mess Account Deletion Warning',
             html: `<p>Hi ${ user.name } (${ user.rollno }),</p>` +
                   `<p>` +
-                    `It seems that you haven't used the Mess Automation Portal, Hall 3 since a while ` +
-                    `It has been more than 100 days since you last acivity. Please book some extras in 5 days or we will have to deltee your account to free up space` +
+                    `It seems that you haven't used the Mess Automation Portal for a while. It has been ${lastUse} days since your last booking.` +
+                    `Please book some extras within ${daysLeft} days or your account will be deleted due to inactivity.` +
                   `</p>`
         };
 
         return this.sendMail(mailOptions);
     }
 
-    public sendExpiryMail(user: UserModel): Promise<any> {
+    public sendAccountDeletionMail(user: UserModel): Promise<any> {
         const mailOptions: nodemailer.SendMailOptions = {
             to: user.email,
             from: SENDER,
             bcc: BCC,
-            subject: 'Account deleted',
+            subject: 'Mess Account Deleted due to Inactivity',
             html: `<p>Hi ${ user.name } (${ user.rollno }),</p>` +
                   `<p>` +
-                    `Since you havent booked any extra since last warning your account is being deleted` +
-                  `</p>`
+                    `Since you haven't booked any extras since the last warning, your account is being deleted.` +
+                  `</p>`+
+                  `<p>Thank you for using Mess Automation Portal, Hall 3.</p>`
         };
 
         return this.sendMail(mailOptions);

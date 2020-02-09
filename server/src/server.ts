@@ -34,7 +34,8 @@ import { SubscriptionSchema } from './schemas/subscription.schema';
 
 // Config
 import { PassportConfig } from './config/passport.config';
-import { MailerConfig } from './config/mailer.config';
+import { MailerConfig, Mailer } from './config/mailer.config';
+import { CronJobs } from './cronJobs';
 
 /**
  * The server.
@@ -48,6 +49,8 @@ export class Server {
 
   // The mongoose Connection
   private connection!: mongoose.Connection;
+  //  Global Mailer Instance
+  private mailer!: Mailer ;
 
   // Global instances of models for dependency injection
   private userModel!: mongoose.Model<UserModel>; // an instance of UserModel
@@ -89,7 +92,7 @@ export class Server {
     this.models();
     this.controllers();
     this.routes();
-
+    new CronJobs(this.userModel, this.mailer).scheduleJobs();
   }
 
   /**
@@ -162,7 +165,9 @@ export class Server {
     require('mongoose').Promise = global.Promise;
 
     mongoose.set('useNewUrlParser', true);
+    mongoose.set('useFindAndModify', false);
     mongoose.set('useCreateIndex', true);
+    mongoose.set('useUnifiedTopology', true);
     const connection: mongoose.Connection = mongoose.createConnection(MONGODB_CONNECTION);
     this.connection = connection;
 
@@ -186,6 +191,8 @@ export class Server {
     // use session
     this.app.use(esession);
 
+    // Set up mailer
+    this.mailer = MailerConfig.setup();
   }
 
   /**
@@ -213,11 +220,8 @@ export class Server {
     this.app.use(passport.initialize());
     this.app.use(passport.session()); // persistent login sessions
 
-    // Set up mailer
-    const mailer = MailerConfig.setup();
-
     // Set up controllers
-    this.accountCtrl = new AccountCtrl(this.userModel, passport, mailer);
+    this.accountCtrl = new AccountCtrl(this.userModel, passport, this.mailer);
     this.dishesCtrl = new DishesCtrl(this.dishModel);
     this.tokensCtrl = new TokensCtrl(this.tokenModel, this.dishModel, this.userModel);
     this.notificationCtrl = new NotificationsCtrl(this.subscriptionModel);
