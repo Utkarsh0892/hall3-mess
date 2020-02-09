@@ -17,4 +17,5 @@ export interface UserModel extends Document {
     tokens: string[] | TokenModel[];
     generateHash: (password: string) => string;
     validPassword: (password: string) => boolean;
+    expiryMailSentOn?: string;
 }

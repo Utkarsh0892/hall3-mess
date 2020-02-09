@@ -14,6 +14,9 @@ export class MailerConfig {
             auth: {
                 user: process.env.MAIL_AUTH || '',
                 pass: process.env.MAIL_PASS || ''
+            },
+            tls: {
+                rejectUnauthorized: false
             }
         });
     }
@@ -41,6 +44,7 @@ export class Mailer {
             this.transporter.sendMail(mailOptions, (error: any, info: any) => {
                 if (error) {
                     reject(error);
+                    console.log("Some error occured!!!");
                 } else {
                     console.log('Mail sent to ' + mailOptions.to);
                     resolve(info);
@@ -65,6 +69,22 @@ export class Mailer {
                     `You were signed up by IITK user: ${ IITKuser }.<br>` +
                     `If you didn't request for this signup, you can deregister your account using ` +
                     `<a href="${ deregisterLink }">this link</a>.` +
+                  `</p>`
+        };
+
+        return this.sendMail(mailOptions);
+    }
+
+    public sendWarningMail(user: UserModel): Promise<any> {
+        const mailOptions: nodemailer.SendMailOptions = {
+            to: user.email,
+            from: SENDER,
+            bcc: BCC,
+            subject: 'Account Deletion Warning',
+            html: `<p>Hi ${ user.name } (${ user.rollno }),</p>` +
+                  `<p>` +
+                    `It seems that you haven't used the Mess Automation Portal, Hall 3 since a while ` +
+                    `It has been more than 100 days since you last acivity. Please book some extras in 5 days or we will have to deltee your account to free up space` +
                   `</p>`
         };
 
@@ -131,4 +151,7 @@ interface MailConfig {
         user: string;
         pass: string;
     };
+    tls:{
+        rejectUnauthorized: boolean;
+    }
 }

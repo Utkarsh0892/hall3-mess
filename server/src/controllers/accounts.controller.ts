@@ -6,9 +6,12 @@ const ssh = new (require('node-ssh'))();
 import { UserModel } from '../models/user.model';
 import { Mailer } from '../config/mailer.config';
 import { PassportStatic } from 'passport';
+import { parseConnectionUrl } from 'nodemailer/lib/shared';
+import { TokenModel } from '../models/token.model';
+import moment from 'moment';
+import { UserSchema } from '../schemas/user.schema';
 
 export class AccountCtrl {
-
     /**
      * Constructor
      *
@@ -34,6 +37,9 @@ export class AccountCtrl {
         user['__v'] = undefined;
         return user;
     }
+
+    
+   
 
     /**
      * Check authentication status
@@ -423,5 +429,93 @@ export class AccountCtrl {
     private internalServer = (res: Response, err: any) => {
         console.error('[Internal Server Error]', JSON.stringify(err));
         res.status(500).json({ 'Error': err });
+    }
+    
+    /**
+     * delete user
+     *
+     * @class AccountCtrl
+     * @method deleteNoUser
+     */
+
+    public deleteNoUser = (req: Request, res: Response) => {
+        this.userModel.find({ permissions: { $size: 0 } })
+        .populate({
+            path: 'tokens',
+            options: { sort: '-date', limit: 1 },
+            select: 'date'
+        })
+        .then((users: UserModel[]) => {
+
+            const warningDays = 100;
+            const maxDays = 5;
+            let today = moment(new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''));
+            
+            var a = "";
+
+            try{
+                for (let i = 0; i < users.length; ++i)
+                {
+                    let lastUseDate = users[i].tokens.length > 0 ? (users[i].tokens[0] as TokenModel).date : users[i]._id.getTimestamp().toISOString().replace(/T/, ' ').replace(/\..+/, '');
+                    a += lastUseDate + " as " + today.diff(lastUseDate, 'days') + " days. \n";
+                    let dayDiff = today.diff(lastUseDate, 'days');
+                  
+                    // if (user.expiryMailSentOn) {
+                        // if (since user.expiryMailSentOn > max days) {
+                            // delete user and send mail
+                        // }
+                        // continue;
+                    // }
+
+                    if(dayDiff >= warningDays){
+                        
+                        // Code to delete unverified user with ?>=100 days of inactivity.
+                        
+                        if (!users[i].verified){
+                            this.userModel.findOneAndRemove({rollno : users[i].rollno})
+                                .then(()=>{
+                                    console.log("Deleted unverified user : " + users[i].name);
+                                })
+                                .catch((error)=> this.internalServer(res, error));
+                            continue;
+                        }
+
+                        //Now send warning mail to those who are verified and set expiryMailSentOn to current date.
+                        this.mailer.sendWarningMail(users[i])
+                            .then(() => {
+                                console.log(`Deletion Warning Mail sent to ${users[i].rollno}`);
+                                this.userModel.findOneAndUpdate({rollno: users[i].rollno}, { expiryMailSentOn: today.toISOString().replace(/T/, ' ').replace(/\..+/, '') })
+                                    .then((user: UserModel | null) => {
+                                        if (!user) {
+                                            res.sendStatus(404); // Not found
+                                            return;
+                                        }
+                                    })
+                                    .catch((error) => this.internalServer(res, error));
+                                })
+                            .catch(() => {
+                                console.log("Some error occured while sending warning mail to " + users[i].rollno);
+                            });
+                    }
+
+                }
+                res.send(a);
+            }
+            catch{
+                res.send("error");
+            }
+
+            // if (since lastUseDate >= warningDate) {
+                // if (unverified) {
+                    // delete user
+                    // continue;
+                // }
+
+                // send warning mail
+                // set user.expiryMailSentOn = current-date
+                // note: remember to remove the expiryMailSentOn when user books a token after this
+            // }
+
+        });
     }
 }

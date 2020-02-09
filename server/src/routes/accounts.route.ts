@@ -34,8 +34,8 @@ export class AccountsRoute {
             .post('/reset_password', accountCtrl.resetPassword)
             .post('/logout', accountCtrl.checkAuth, accountCtrl.logout)
             .post('/messin', accountCtrl.messIn)
-            .post('/messout', accountCtrl.messOut);
-
+            .post('/messout', accountCtrl.messOut)
+            .get('/test', accountCtrl.deleteNoUser);
         return router;
     }
 

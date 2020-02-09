@@ -111,6 +111,7 @@ export class TokensCtrl {
                     return;
                 }
                 (user.tokens as string[]).push(token._id);
+                user.expiryMailSentOn = '';
                 user.save().then((savedUser: UserModel) =>
                         res.status(200).json(this.sanitize(token)));
             })
