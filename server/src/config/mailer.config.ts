@@ -91,6 +91,21 @@ export class Mailer {
         return this.sendMail(mailOptions);
     }
 
+    public sendExpiryMail(user: UserModel): Promise<any> {
+        const mailOptions: nodemailer.SendMailOptions = {
+            to: user.email,
+            from: SENDER,
+            bcc: BCC,
+            subject: 'Account deleted',
+            html: `<p>Hi ${ user.name } (${ user.rollno }),</p>` +
+                  `<p>` +
+                    `Since you havent booked any extra since last warning your account is being deleted` +
+                  `</p>`
+        };
+
+        return this.sendMail(mailOptions);
+    }
+
     public sendResetPasswordLink(user: UserModel, resetLink: string): Promise<any> {
         const mailOptions: nodemailer.SendMailOptions = {
             to: user.email,

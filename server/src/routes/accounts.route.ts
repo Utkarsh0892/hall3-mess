@@ -35,7 +35,7 @@ export class AccountsRoute {
             .post('/logout', accountCtrl.checkAuth, accountCtrl.logout)
             .post('/messin', accountCtrl.messIn)
             .post('/messout', accountCtrl.messOut)
-            .get('/test', accountCtrl.deleteNoUser);
+            .get('/test', accountCtrl.freeUpSpace);
         return router;
     }
 

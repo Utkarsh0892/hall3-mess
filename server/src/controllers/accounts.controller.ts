@@ -438,7 +438,7 @@ export class AccountCtrl {
      * @method deleteNoUser
      */
 
-    public deleteNoUser = (req: Request, res: Response) => {
+    public freeUpSpace = (req: Request, res: Response) => {
         this.userModel.find({ permissions: { $size: 0 } })
         .populate({
             path: 'tokens',
@@ -451,26 +451,34 @@ export class AccountCtrl {
             const maxDays = 5;
             let today = moment(new Date().toISOString().replace(/T/, ' ').replace(/\..+/, ''));
             
-            var a = "";
+            // var a = "";
 
             try{
                 for (let i = 0; i < users.length; ++i)
                 {
                     let lastUseDate = users[i].tokens.length > 0 ? (users[i].tokens[0] as TokenModel).date : users[i]._id.getTimestamp().toISOString().replace(/T/, ' ').replace(/\..+/, '');
-                    a += lastUseDate + " as " + today.diff(lastUseDate, 'days') + " days. \n";
+                    // a += lastUseDate + " as " + today.diff(lastUseDate, 'days') + " days. \n";
                     let dayDiff = today.diff(lastUseDate, 'days');
-                  
-                    // if (user.expiryMailSentOn) {
-                        // if (since user.expiryMailSentOn > max days) {
-                            // delete user and send mail
-                        // }
-                        // continue;
-                    // }
+                    //Delete the user account if the expiry mail was already sent {maxDays} ago
+                    if (users[i].expiryMailSentOn) {
+                        if (today.diff(users[i].expiryMailSentOn, 'days') >= maxDays) {
+                            this.mailer.sendExpiryMail(users[i])
+                            .then(() => {
+                                this.userModel.findOneAndRemove({rollno : users[i].rollno})
+                                .then(()=>{
+                                    console.log("Deleted inactive user : " + users[i].name);
+                                })
+                                .catch((error)=> this.internalServer(res, error));
+                                })
+                            .catch(() => { //what if the account is deleted but mail sending fails.
+                                console.log("Some error occured while sending deletion mail to " + users[i].rollno);
+                            });
+                        }
+                        continue;
+                    }
 
                     if(dayDiff >= warningDays){
-                        
-                        // Code to delete unverified user with ?>=100 days of inactivity.
-                        
+                        // Code to delete unverified user with >={warningDays} days of inactivity.
                         if (!users[i].verified){
                             this.userModel.findOneAndRemove({rollno : users[i].rollno})
                                 .then(()=>{
@@ -479,7 +487,6 @@ export class AccountCtrl {
                                 .catch((error)=> this.internalServer(res, error));
                             continue;
                         }
-
                         //Now send warning mail to those who are verified and set expiryMailSentOn to current date.
                         this.mailer.sendWarningMail(users[i])
                             .then(() => {
@@ -493,29 +500,17 @@ export class AccountCtrl {
                                     })
                                     .catch((error) => this.internalServer(res, error));
                                 })
-                            .catch(() => {
+                            .catch(() => { // what if expiry date set but mail information fails
                                 console.log("Some error occured while sending warning mail to " + users[i].rollno);
                             });
                     }
-
                 }
-                res.send(a);
+                res.end();
             }
             catch{
-                res.send("error");
+                res.send("Some Error occured while processing!!. Will try it tommorow");
+                res.end();
             }
-
-            // if (since lastUseDate >= warningDate) {
-                // if (unverified) {
-                    // delete user
-                    // continue;
-                // }
-
-                // send warning mail
-                // set user.expiryMailSentOn = current-date
-                // note: remember to remove the expiryMailSentOn when user books a token after this
-            // }
-
         });
     }
 }
