@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material';
 import { AuthService } from '@app/services';
 import {MatDialog, MatDialogRef} from '@angular/material';
-import {ContactusComponent} from './contactus/contactus.component';
+
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -42,9 +42,5 @@ export class LoginComponent implements OnInit {
     } else {
       this.snackBar.open('Please fill all the fields.');
     }
-  }
-
-  contactUs() {
-    this.dialog.open(ContactusComponent);
   }
 }

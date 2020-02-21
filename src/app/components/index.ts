@@ -8,7 +8,6 @@ import { PWAPromptComponent } from '@app/components/pwa-prompt/pwa-prompt.compon
 import { VerifyComponent } from '@app/components/verify/verify.component';
 import { DeleteComponent } from '@app/components/delete/delete.component';
 import { ResetPasswordComponent } from '@app/components/reset-password/reset-password.component';
-import { ContactusComponent} from '@app/components/login/contactus/contactus.component';
 export {
     LoginComponent,
     SignupComponent,
@@ -19,6 +18,5 @@ export {
     PWAPromptComponent,
     VerifyComponent,
     DeleteComponent,
-    ResetPasswordComponent,
-    ContactusComponent
+    ResetPasswordComponent
 };
