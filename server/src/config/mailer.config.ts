@@ -33,7 +33,7 @@ export class Mailer {
     }
 
     private sendMail(mailOptions: nodemailer.SendMailOptions): Promise<any> {
-        mailOptions.html += this.FOOTER;
+        mailOptions.html += Mailer.FOOTER;
         if (!process.env.MAIL_ENABLED) {
             console.log('Mail would have been sent to ' + mailOptions.to);
             console.log('Mail Payoad: ', JSON.stringify(mailOptions, null, 2));
@@ -44,7 +44,7 @@ export class Mailer {
             this.transporter.sendMail(mailOptions, (error: any, info: any) => {
                 if (error) {
                     reject(error);
-                    console.log("Some error occured!!!");
+                    console.log('Some error occured!!!');
                 } else {
                     console.log('Mail sent to ' + mailOptions.to);
                     resolve(info);
@@ -75,7 +75,7 @@ export class Mailer {
         return this.sendMail(mailOptions);
     }
 
-    public sendInactivityWarningMail(user: UserModel, lastUse : Number, daysLeft : Number): Promise<any> {
+    public sendInactivityWarningMail(user: UserModel, lastUse: Number, daysLeft: Number): Promise<any> {
         const mailOptions: nodemailer.SendMailOptions = {
             to: user.email,
             from: SENDER,
@@ -100,7 +100,7 @@ export class Mailer {
             html: `<p>Hi ${ user.name } (${ user.rollno }),</p>` +
                   `<p>` +
                     `Since you haven't booked any extras since the last warning, your account is being deleted.` +
-                  `</p>`+
+                  `</p>` +
                   `<p>Thank you for using Mess Automation Portal, Hall 3.</p>`
         };
 
@@ -126,9 +126,9 @@ export class Mailer {
         return this.sendMail(mailOptions);
     }
 
-    private readonly FOOTER = `------` +
+    private static FOOTER = `------` +
                                 `<div style="font: 10px/1.4 Arial,Helvetica,sans-serif;">` +
-                                    `<p>In case of any difficulty or concern, please feel free to contact any one of us.</p>` +  
+                                    `<p>In case of any difficulty or concern, please feel free to contact any one of us.</p>` +
                                     `<p>` +
                                         `Saurabh Vikram<br>` +
                                         `Web-Incharge (Present)<br>` +
@@ -149,7 +149,7 @@ export class Mailer {
                                         `Hall 3 IIT Kanpur<br>` +
                                         `<a href="mailto:ashsgh@iitk.ac.in">ashsgh@iitk.ac.in</a> | 8778124118` +
                                     `</p>` +
-            
+
                                     `<p>` +
                                         `Abhishek Datta<br>` +
                                         `Web-Incharge (2017-2018)<br>` +
@@ -167,7 +167,7 @@ interface MailConfig {
         user: string;
         pass: string;
     };
-    tls:{
+    tls: {
         rejectUnauthorized: boolean;
-    }
+    };
 }

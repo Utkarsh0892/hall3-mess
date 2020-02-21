@@ -1,11 +1,11 @@
-import { Model } from "mongoose";
-import { UserModel } from "./models/user.model";
-import { Mailer } from "./config/mailer.config";
+import { Model } from 'mongoose';
+import { UserModel } from './models/user.model';
+import { Mailer } from './config/mailer.config';
 import schedule from 'node-schedule';
 import moment from 'moment';
-import { TokenModel } from "./models/token.model";
+import { TokenModel } from './models/token.model';
 
-export class CronJobs{
+export class CronJobs {
 
     /**
      * Constructor
@@ -18,10 +18,10 @@ export class CronJobs{
         moment.defaultFormat = 'YYYY-MM-DD HH:mm:ss';
     }
 
-    public scheduleJobs(){
+    public scheduleJobs() {
         schedule.scheduleJob('0 0 * * *', this.handleInactiveUsersJob);
     }
-    
+
     private handleInactiveUsersJob = () => {
 
         console.log('Starting handleInactiveUsersJob...');
@@ -36,61 +36,61 @@ export class CronJobs{
 
             const warningDays = 100;
             const maxDays = 5;
-            let today = moment();
-            const lastUseDate = (user : UserModel) => user.tokens.length > 0 ? (user.tokens[0] as TokenModel).date : user._id.getTimestamp();
-             
+            const today = moment();
+            const lastUseDate = (user: UserModel) => user.tokens.length > 0 ? (user.tokens[0] as TokenModel).date : user._id.getTimestamp();
+
             const inactiveUsers = users.filter(user => today.diff(lastUseDate(user), 'days') >= warningDays);
             const inactiveUsersToBeWarned = inactiveUsers.filter(user => !user.expiryMailSentOn);
-            const inactiveUsersToBeDeleted = inactiveUsers.filter(user=> user.expiryMailSentOn && today.diff(user.expiryMailSentOn, 'days') >= maxDays);
-            
-            console.log('Number of inactive users found: ' + inactiveUsers.length);
-            console.log("Number of inactive users to be warned: " + inactiveUsersToBeWarned.length);
-            console.log("Number of inactive users to be deleted: " + inactiveUsersToBeDeleted.length);
+            const inactiveUsersToBeDeleted = inactiveUsers.filter(user => user.expiryMailSentOn && today.diff(user.expiryMailSentOn, 'days') >= maxDays);
 
-            inactiveUsersToBeWarned.forEach((user) => {
+            console.log('Number of inactive users found: ' + inactiveUsers.length);
+            console.log('Number of inactive users to be warned: ' + inactiveUsersToBeWarned.length);
+            console.log('Number of inactive users to be deleted: ' + inactiveUsersToBeDeleted.length);
+
+            inactiveUsersToBeWarned.forEach((inactiveUser) => {
                 // Code to delete unverified user with >={warningDays} days of inactivity.
-                if (!user.verified){
-                    this.userModel.findOneAndRemove({rollno : user.rollno})
+                if (!inactiveUser.verified) {
+                    this.userModel.findOneAndRemove({rollno : inactiveUser.rollno})
                         .then(() => {
-                            console.log("Deleted unverified user : " + user.rollno);
+                            console.log('Deleted unverified user : ' + inactiveUser.rollno);
                         })
-                        .catch((error) => console.error("Could not delete account for rollno: " + user.rollno, error));
+                        .catch((error) => console.error('Could not delete account for rollno: ' + inactiveUser.rollno, error));
                     return;
                 }
 
-                const dayDiff = today.diff(lastUseDate(user), 'days');
+                const dayDiff = today.diff(lastUseDate(inactiveUser), 'days');
 
-                //Now send warning mail to those who are verified and set expiryMailSentOn to current date.
-                console.log ("Sending deletion warning mail to rollno: " + user.rollno);
-                this.mailer.sendInactivityWarningMail(user, dayDiff, maxDays)
+                // Now send warning mail to those who are verified and set expiryMailSentOn to current date.
+                console.log ('Sending deletion warning mail to rollno: ' + inactiveUser.rollno);
+                this.mailer.sendInactivityWarningMail(inactiveUser, dayDiff, maxDays)
                     .then(() => {
-                        this.userModel.findOneAndUpdate({rollno: user.rollno}, { expiryMailSentOn: moment().format()})
-                            .then((user: UserModel | null) => {
-                                if (!user){
-                                   throw 'User not found';
-                                }
-                                console.log(`Set expiryMailSentOn to today's date for ${user.rollno}`);
-                            })
-                            .catch((error) => console.error('Could not update expiryMailSentOn for rollno:' + user.rollno, error));
+                        this.userModel.findOneAndUpdate({rollno: inactiveUser.rollno}, { expiryMailSentOn: moment().format()})
+                        .then((updatedUser: UserModel | null) => {
+                            if (!updatedUser) {
+                                throw new Error('User not found');
+                            }
+                            console.log(`Set expiryMailSentOn to today's date for ${updatedUser.rollno}`);
                         })
-                    .catch((error) => { 
-                        console.error("Some error occured while sending warning mail to " + user.rollno, error);
+                        .catch((error) => console.error('Could not update expiryMailSentOn for rollno:' + inactiveUser.rollno, error));
+                    })
+                    .catch((error) => {
+                        console.error('Some error occured while sending warning mail to ' + inactiveUser.rollno, error);
                     });
             });
 
-            inactiveUsersToBeDeleted.forEach((user) => {
-                this.mailer.sendAccountDeletionMail(user)
+            inactiveUsersToBeDeleted.forEach((inactiveUser) => {
+                this.mailer.sendAccountDeletionMail(inactiveUser)
                     .then(() => {
-                        this.userModel.findOneAndRemove({rollno : user.rollno})
+                        this.userModel.findOneAndRemove({rollno : inactiveUser.rollno})
                         .then(() => {
-                            console.log("Deleted inactive user : " + user.rollno);
+                            console.log('Deleted inactive user : ' + inactiveUser.rollno);
                         })
                         .catch((error) => console.error('Error occured while deleting inactive account', error));
-                        })
-                    .catch((error) => { 
-                        console.error("Some error occured while sending deletion mail to " + user.rollno, error);
+                    })
+                    .catch((error) => {
+                        console.error('Some error occured while sending deletion mail to ' + inactiveUser.rollno, error);
                     });
-            })
+            });
 
         });
 

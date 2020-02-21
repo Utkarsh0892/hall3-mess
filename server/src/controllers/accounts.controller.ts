@@ -6,12 +6,9 @@ const ssh = new (require('node-ssh'))();
 import { UserModel } from '../models/user.model';
 import { Mailer } from '../config/mailer.config';
 import { PassportStatic } from 'passport';
-import { parseConnectionUrl } from 'nodemailer/lib/shared';
-import { TokenModel } from '../models/token.model';
-import moment from 'moment';
-import { UserSchema } from '../schemas/user.schema';
 
 export class AccountCtrl {
+
     /**
      * Constructor
      *
@@ -37,9 +34,6 @@ export class AccountCtrl {
         user['__v'] = undefined;
         return user;
     }
-
-    
-   
 
     /**
      * Check authentication status
@@ -430,5 +424,5 @@ export class AccountCtrl {
         console.error('[Internal Server Error]', JSON.stringify(err));
         res.status(500).json({ 'Error': err });
     }
-    
+
 }
